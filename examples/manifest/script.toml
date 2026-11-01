@@ -1,0 +1,6 @@
+# Manifest'li script örneği: bu klasörü olduğu gibi scripts altına koyun.
+# Komut şablonu (%s yok): {{dir}} = bu klasörün tam yolu, {{args}} = paletten verdiğiniz argümanlar.
+name = "args-demo"
+description = "Argümanları geri basan manifest örneği (python kullanır)"
+command = 'python {{dir}}\args_demo.py {{args}}'
+default_args = "-v"
