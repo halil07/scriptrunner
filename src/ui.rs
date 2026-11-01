@@ -5,7 +5,7 @@ use std::time::Duration;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style, Stylize};
 use ratatui::text::{Line, Span};
-use ratatui::widgets::{Block, Borders, Clear, List, ListItem, Paragraph};
+use ratatui::widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap};
 use ratatui::Frame;
 
 use crate::app::{App, HomeAction};
@@ -74,8 +74,28 @@ fn draw_rule(f: &mut Frame, r: Rect) {
 fn draw_body(f: &mut Frame, app: &App, r: Rect) {
     match &app.job {
         Some(job) => draw_job(f, app, job, r),
+        None if app.help_open => draw_help(f, app, r),
         None => draw_welcome(f, app, r),
     }
+}
+
+fn draw_help(f: &mut Frame, app: &App, r: Rect) {
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::new().fg(Color::Rgb(50, 50, 50)))
+        .title(Span::styled(" Yardım ", Style::new().fg(ACCENT).bold()))
+        .style(Style::new().bg(Color::Black));
+    let inner = block.inner(r);
+    f.render_widget(block, r);
+    let text = crate::help::text();
+    let lines: Vec<Line> = text.lines().map(Line::from).collect();
+    f.render_widget(
+        Paragraph::new(lines)
+            .style(Style::new().bg(Color::Black).fg(Color::White))
+            .wrap(Wrap { trim: false })
+            .scroll((app.help_scroll, 0)),
+        inner,
+    );
 }
 
 fn draw_welcome(f: &mut Frame, app: &App, r: Rect) {
@@ -102,6 +122,7 @@ fn draw_welcome(f: &mut Frame, app: &App, r: Rect) {
         let (label, shortcut) = match action {
             HomeAction::OpenList => ("Listeyi aç", "Enter / Ctrl+P"),
             HomeAction::Rerun => ("Son işi tekrar çalıştır", "Enter / Ctrl+R"),
+            HomeAction::Help => ("Yardım", "Enter"),
             HomeAction::Quit => ("Çıkış", "Enter / q / Ctrl+C"),
         };
         let marker_style = if selected { Style::new().fg(ACCENT).bold() } else { Style::new().fg(MUTED) };
@@ -188,7 +209,9 @@ fn draw_status(f: &mut Frame, app: &App, r: Rect) {
         status_left(app)
     };
 
-    let hint = if app.job.as_ref().is_some_and(|job| !job.is_running()) {
+    let hint = if app.help_open {
+        " Esc/Backspace geri · ↑↓/PgUp/PgDn kaydır  "
+    } else if app.job.as_ref().is_some_and(|job| !job.is_running()) {
         " Backspace ana ekran · PgUp/PgDn kaydır  "
     } else {
         " Ctrl+P scriptler · Ctrl+R tekrar · Ctrl+C durdur/çık · PgUp/PgDn kaydır  "

@@ -3,6 +3,7 @@
 mod app;
 mod config;
 mod discovery;
+mod help;
 mod runner;
 mod ui;
 mod util;
@@ -65,19 +66,7 @@ fn main() {
 }
 
 fn help() {
-    println!(
-        "scriptrunner  {} — script paletli terminal çalıştırıcı
-kullanım:
-  scriptrunner                TUI başlatır (Ctrl+P: palet)
-  scriptrunner -l, --list     scriptleri listeler
-  scriptrunner -d, --dir      script klasörünü yazar
-  scriptrunner -o, --open     script klasörünü Gezgin'de açar
-  scriptrunner run python/hello.py [args...]  TUI olmadan doğrudan çalıştırır
-script klasörü: %APPDATA%\\scriptrunner\\scripts
-  python/, nodejs/, rust/ gibi alt klasörlere script koyabilirsin
-  .py/.js/.rs dosyaları desteklenir; klasör + script.toml manifest de kullanılır",
-        env!("CARGO_PKG_VERSION")
-    );
+    println!("{}", help::text());
 }
 
 fn cmd_list() -> i32 {

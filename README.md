@@ -78,16 +78,15 @@ scriptrunner run python/hello.py a b   TUI olmadan doğrudan çalıştır (exit 
 
 ## Kurulum (Windows x64)
 
-1. GitHub deposundaki **Releases** bölümünden en son sürümün
-   `scriptrunner-windows-x86_64.zip` dosyasını indirin.
-2. ZIP'i istediğiniz klasöre çıkarın (ör. `%LOCALAPPDATA%\Programs\scriptrunner`).
-3. `scriptrunner.exe` dosyasını bir terminalden çalıştırın. Klasörü `PATH`'e
+1. GitHub deposundaki **Releases** bölümünden `scriptrunner.exe` dosyasını indirin.
+2. İstediğiniz klasöre taşıyıp terminalden çalıştırın. Klasörü `PATH`'e
    eklerseniz `scriptrunner` komutunu her dizinden kullanabilirsiniz.
 
 ```powershell
-# Örnek: ZIP'i indirdiğiniz klasörde açtıktan sonra
-Expand-Archive .\scriptrunner-windows-x86_64.zip `
-  -DestinationPath "$env:LOCALAPPDATA\Programs\scriptrunner" -Force
+# İndirilen dosyayı örnek bir kurulum klasörüne taşıyın
+New-Item -ItemType Directory -Force "$env:LOCALAPPDATA\Programs\scriptrunner"
+Move-Item "$env:USERPROFILE\Downloads\scriptrunner.exe" `
+  "$env:LOCALAPPDATA\Programs\scriptrunner\scriptrunner.exe"
 & "$env:LOCALAPPDATA\Programs\scriptrunner\scriptrunner.exe" --help
 ```
 
@@ -97,7 +96,9 @@ olmalıdır. İlk çalıştırmada script ve yapılandırma klasörleri otomatik
 
 Yeni bir GitHub Release yayımlamak için `v` ile başlayan bir sürüm etiketi
 gönderin (ör. `v0.1.0`). GitHub Actions testleri çalıştırır, Windows x64
-ikilisini derler ve ZIP dosyasını Release'e ekler.
+ikilisini derler ve yalnızca `scriptrunner.exe` dosyasını Release'e ekler.
+Komut ve uygulama içi kullanım yardımı için `scriptrunner --help` komutunu
+kullanın veya TUI ana ekranından **Yardım** seçeneğini açın.
 
 ## Yorumlayıcı ayarı
 

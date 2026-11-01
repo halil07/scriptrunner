@@ -31,6 +31,7 @@ pub struct Palette {
 pub enum HomeAction {
     OpenList,
     Rerun,
+    Help,
     Quit,
 }
 
@@ -44,6 +45,8 @@ pub struct App {
     pub scroll_back: u16,
     /// Ana ekrandaki seçili eylem.
     pub home_selected: usize,
+    pub help_open: bool,
+    pub help_scroll: u16,
     pub quit: bool,
     pub toast: Option<(String, Instant)>,
     pub spin: usize,
@@ -70,6 +73,8 @@ impl App {
             last: None,
             scroll_back: 0,
             home_selected: 0,
+            help_open: false,
+            help_scroll: 0,
             quit: false,
             toast: None,
             spin: 0,
@@ -141,6 +146,7 @@ impl App {
         if self.last.is_some() {
             actions.push(HomeAction::Rerun);
         }
+        actions.push(HomeAction::Help);
         actions.push(HomeAction::Quit);
         actions
     }
@@ -149,6 +155,10 @@ impl App {
         match self.home_actions().get(self.home_selected).copied() {
             Some(HomeAction::OpenList) => self.open_palette(),
             Some(HomeAction::Rerun) => self.rerun_last(),
+            Some(HomeAction::Help) => {
+                self.help_open = true;
+                self.help_scroll = 0;
+            }
             Some(HomeAction::Quit) => self.quit = true,
             None => self.home_selected = 0,
         }
@@ -250,7 +260,31 @@ impl App {
             return;
         }
 
+        if self.help_open {
+            self.on_help_key(k);
+            return;
+        }
+
         self.on_home_key(k);
+    }
+
+    fn on_help_key(&mut self, k: KeyEvent) {
+        let max_scroll = crate::help::text().lines().count().saturating_sub(1) as u16;
+        match k.code {
+            KeyCode::Esc | KeyCode::Backspace => {
+                self.help_open = false;
+                self.help_scroll = 0;
+            }
+            KeyCode::Up | KeyCode::Char('k') => self.help_scroll = self.help_scroll.saturating_sub(1),
+            KeyCode::Down | KeyCode::Char('j') => {
+                self.help_scroll = self.help_scroll.saturating_add(1).min(max_scroll)
+            }
+            KeyCode::PageUp => self.help_scroll = self.help_scroll.saturating_sub(20),
+            KeyCode::PageDown => self.help_scroll = self.help_scroll.saturating_add(20).min(max_scroll),
+            KeyCode::Home => self.help_scroll = 0,
+            KeyCode::End => self.help_scroll = max_scroll,
+            _ => {}
+        }
     }
 
     fn on_home_key(&mut self, k: KeyEvent) {
@@ -654,7 +688,7 @@ mod tests {
     }
 
     #[test]
-    fn ana_menu_enter_ile_liste_acilir_ve_cikis_secilir() {
+    fn ana_menu_liste_yardim_ve_cikis_eylemlerini_acar() {
         let cfg = scratch_cfg("home_menu");
         let (tx, _rx) = mpsc::channel::<AppEvent>();
         let mut app = App::new(cfg, tx);
@@ -665,7 +699,21 @@ mod tests {
         )));
         assert!(app.palette.is_some(), "ilk menü seçeneği script listesini açmalı");
 
-        // Paleti kapatıp ana menüde Çıkış seçeneğine git.
+        // Paleti kapatıp ana menüden Yardım'ı aç.
+        app.app_event(AppEvent::Key(crossterm::event::KeyEvent::new(
+            crossterm::event::KeyCode::Esc,
+            crossterm::event::KeyModifiers::NONE,
+        )));
+        app.app_event(AppEvent::Key(crossterm::event::KeyEvent::new(
+            crossterm::event::KeyCode::Down,
+            crossterm::event::KeyModifiers::NONE,
+        )));
+        app.app_event(AppEvent::Key(crossterm::event::KeyEvent::new(
+            crossterm::event::KeyCode::Enter,
+            crossterm::event::KeyModifiers::NONE,
+        )));
+        assert!(app.help_open, "ana menüden Yardım seçilebilmeli");
+
         app.app_event(AppEvent::Key(crossterm::event::KeyEvent::new(
             crossterm::event::KeyCode::Esc,
             crossterm::event::KeyModifiers::NONE,
