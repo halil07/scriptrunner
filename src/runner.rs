@@ -157,7 +157,11 @@ pub fn build_stages(script: &Script, cfg: &AppConfig, args_line: &str) -> Result
             let exe_out = cfg
                 .cache_dir
                 .join("rust")
-                .join(format!("{}.exe", util::cache_file_name(&script.key)));
+                .join(format!(
+                    "{}{}",
+                    util::cache_file_name(&script.key),
+                    std::env::consts::EXE_SUFFIX
+                ));
             let stale = |out: &Path| match (std::fs::metadata(out), std::fs::metadata(&script.path)) {
                 (Ok(o), Ok(s)) => match (o.modified(), s.modified()) {
                     (Ok(om), Ok(sm)) => om < sm,

@@ -148,7 +148,7 @@ pub fn fmt_duration(d: Duration) -> String {
     }
 }
 
-/// Aynı .exe yolunu cache için isimlendirir (yol ayraçları __ ile değişir).
+/// Kaynak anahtarını derleme cache'i için güvenli dosya adına çevirir.
 pub fn cache_file_name(key: &str) -> String {
     let bad = ['/', '\\', ':', '*', '?', '"', '<', '>', '|', ' '];
     let mut s: String = key.chars().map(|c| if bad.contains(&c) { '_' } else { c }).collect();

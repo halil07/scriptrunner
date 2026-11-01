@@ -1,9 +1,7 @@
 //! Yol ve yapılandırma yönetimi.
 //!
-//! Root (Windows): %APPDATA%\scriptrunner
-//!   - config.toml        (isteğe bağlı: yorumlayıcı ayarları)
-//!   - scripts\           (scriptler buraya bırakılır)
-//! Cache (Windows): %LOCALAPPDATA%\scriptrunner\cache  (rustc derlemeleri vb.)
+//! Yapılandırma ve scriptler işletim sisteminin uygulama verisi dizinindeki
+//! scriptrunner klasöründe; derleme cache'i ise kullanıcı cache dizinindedir.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -13,9 +11,17 @@ use serde::Deserialize;
 
 pub const APP_ID: &str = "scriptrunner";
 
+fn default_python_command() -> &'static str {
+    if cfg!(windows) || crate::util::find_in_path("python").is_some() {
+        "python"
+    } else {
+        "python3"
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct AppConfig {
-    /// Yapılandırma kökü (ör. C:\Users\<user>\AppData\Roaming\scriptrunner)
+    /// İşletim sisteminin uygulama verisi altındaki scriptrunner dizini.
     #[allow(dead_code)]
     pub root: PathBuf,
     pub scripts_dir: PathBuf,
@@ -42,7 +48,6 @@ struct ConfigToml {
 }
 
 fn default_data_dir() -> PathBuf {
-    // dirs::data_dir() Windows'ta %APPDATA% (Roaming) verir.
     dirs::data_dir()
         .or_else(|| std::env::var_os("APPDATA").map(PathBuf::from))
         .unwrap_or_else(|| PathBuf::from("."))
@@ -56,7 +61,6 @@ fn config_root() -> PathBuf {
 }
 
 fn default_cache_dir() -> PathBuf {
-    // Windows'ta %LOCALAPPDATA% ; Linux/macOS'ta ~/.cache
     dirs::cache_dir()
         .unwrap_or_else(|| default_data_dir().join("cache"))
         .join(APP_ID)
@@ -84,7 +88,7 @@ impl AppConfig {
             root,
             scripts_dir,
             cache_dir,
-            python: "python".into(),
+            python: default_python_command().into(),
             node: "node".into(),
             rustc: "rustc".into(),
         };
@@ -100,10 +104,13 @@ impl AppConfig {
             fs::write(&cfg_path, sample_config()).ok();
         }
 
-        // rustc PATH'te yoksa bilinen konumu dene (rustup varsayılan kurulum yeri)
+        // rustc PATH'te yoksa rustup'ın varsayılan konumunu dene.
         if crate::util::find_in_path(&app.rustc).is_none() {
             if let Some(home) = dirs::home_dir() {
-                let cand = home.join(r".cargo\bin\rustc.exe");
+                #[cfg(windows)]
+                let cand = home.join(".cargo").join("bin").join("rustc.exe");
+                #[cfg(not(windows))]
+                let cand = home.join(".cargo").join("bin").join("rustc");
                 if cand.is_file() {
                     app.rustc = cand.to_string_lossy().into_owned();
                 }
@@ -125,10 +132,20 @@ impl AppConfig {
 
 /// İlk açılışta yazılacak, yorumlu örnek yapılandırma.
 fn sample_config() -> String {
-    let py = crate::util::find_in_path("python").is_some();
+    let python = default_python_command();
+    let py = crate::util::find_in_path(python).is_some();
     let node = crate::util::find_in_path("node").is_some();
     let rust = crate::util::find_in_path("rustc").is_some();
     let note = |ok: bool| if ok { "(PATH'te bulundu)" } else { "(PATH'te bulunamadı - tam yol verin)" };
+    let (python_path, node_path, rustc_path) = if cfg!(windows) {
+        (
+            r"C:\\Path\\To\\python.exe",
+            r"C:\\Program Files\\nodejs\\node.exe",
+            r"C:\\Users\\<kullanıcı_adı>\\.cargo\\bin\\rustc.exe",
+        )
+    } else {
+        ("/usr/bin/python3", "/usr/bin/node", "/usr/bin/rustc")
+    };
 
     format!(
         "# scriptrunner yapılandırma dosyası\n\
@@ -136,10 +153,15 @@ fn sample_config() -> String {
          # Bulunmazsa veya özel bir yol kullanmak isterseniz buraya tam yolu yazın.\n\n\
          # Örnek yollardaki yer tutucuları kendi kurulumunuza göre değiştirin.\n\
          [interpreters]\n\
-         # python = \"C:\\\\Path\\\\To\\\\python.exe\"     {}\n\
-         # node   = \"C:\\\\Program Files\\\\nodejs\\\\node.exe\"  {}\n\
-         # rustc  = \"C:\\\\Users\\\\<kullanıcı_adı>\\\\.cargo\\\\bin\\\\rustc.exe\" {}\n",
-        note(py), note(node), note(rust)
+         # python = \"{}\"     {}\n\
+         # node   = \"{}\"  {}\n\
+         # rustc  = \"{}\" {}\n",
+        python_path,
+        note(py),
+        node_path,
+        note(node),
+        rustc_path,
+        note(rust)
     )
 }
 
@@ -154,4 +176,14 @@ pub fn shorten(path: &Path, max: usize) -> String {
     let head: String = chars[..half].iter().collect();
     let tail: String = chars[chars.len() - half..].iter().collect();
     format!("…{}{}", head, tail)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{sample_config, ConfigToml};
+
+    #[test]
+    fn sample_config_is_valid_toml() {
+        toml::from_str::<ConfigToml>(&sample_config()).expect("örnek config geçerli TOML olmalı");
+    }
 }

@@ -27,9 +27,10 @@ TUI TUŞLARI
   q                            Ana ekrandan çık
 
 SCRIPT EKLEME
-  Script klasörü: %APPDATA%\scriptrunner\scripts
+  Script klasörü: işletim sisteminin uygulama verisi dizinindeki scriptrunner/scripts
+  Tam yolu görmek için: scriptrunner --dir
   Alt klasörler taranır; örneğin python\hello.py anahtarı python/hello.py olur.
-  - .py / .pyw        Python ile çalışır (python -u)
+  - .py / .pyw        Python ile çalışır (python[3] -u)
   - .js / .mjs / .cjs Node.js ile çalışır
   - .rs               rustc ile derlenip çalışır; derlenmiş dosya cache'te tutulur
   - script.toml       Bir klasörde özel komut tanımlar (örnek aşağıda)
@@ -47,7 +48,8 @@ SCRIPT EKLEME
 YAPILANDIRMA
   Yorumlayıcılar PATH'te aranır. Bulunamazlarsa config.toml içindeki
   [interpreters] bölümüne python, node veya rustc için tam yolu yazın.
-  Varsayılan config: %APPDATA%\scriptrunner\config.toml
+  config.toml, işletim sisteminin uygulama verisi dizinindeki scriptrunner klasöründedir.
+  Derleme cache'i işletim sisteminin kullanıcı cache dizininde tutulur.
   SCRIPTRUNNER_CONFIG ortam değişkeniyle config/script kök dizini değiştirilebilir.
   -d / --dir script klasörünün yolunu gösterir; -o / --open klasörü açar.
   İlk TUI açılışında config.toml oluşturma sorulur, yorumlayıcılar denetlenir;

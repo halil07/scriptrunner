@@ -3,16 +3,16 @@
 OpenCode tarzı terminal UI'lı (TUI), Rust ile yazılmış bir script çalıştırıcı.
 **Ctrl+P** ile script seçersin, argüman girersin, çalışır. AI yok — statik, hızlı ve padletsiz.
 
-## Yol haritası / konumlar (Windows)
+## Konumlar
 
-| Ne | Nerede |
-|---|---|
-| Scriptler | `%APPDATA%\scriptrunner\scripts\` |
-| Config | `%APPDATA%\scriptrunner\config.toml` |
-| Rust derlemeleri (cache) | `%LOCALAPPDATA%\scriptrunner\cache\rust\` |
-| Çıktıdan ödünç | yalnızca bellekte |
+| İşletim sistemi | Scriptler ve config | Rust derleme cache'i |
+|---|---|---|
+| Windows | `%APPDATA%\scriptrunner\` | `%LOCALAPPDATA%\scriptrunner\cache\` |
+| Linux | `~/.local/share/scriptrunner/` | `~/.cache/scriptrunner/cache/` |
+| macOS | `~/Library/Application Support/scriptrunner/` | `~/Library/Caches/scriptrunner/cache/` |
 
 `SCRIPTRUNNER_CONFIG` ortam değişkeniyle kök dizini değiştirebilirsin.
+Script klasörünün gerçek yolunu `scriptrunner --dir` ile görebilirsin.
 
 ## Script tanımlama
 
@@ -21,7 +21,7 @@ klasörlere ayırabilirsin (`scripts\python\`, `scripts\nodejs\`, `scripts\rust\
 
 - `ornek.py` / `ornek.pyw` → `python -u ornek.py <args>`
 - `ornek.js` / `.mjs` / `.cjs` → `node ornek.js <args>`
-- `ornek.rs` → `rustc ornek.rs -o cache/*.exe` (derle) → `ornek.exe <args>`
+- `ornek.rs` → `rustc` ile cache'e derlenir → derlenen program çalıştırılır
   (tek dosyada std dışı kütüphane yok; cargo projesi için manifest kullan)
 
 Alt klasörlere koyulan scriptin anahtarı klasör yolunu içerir:
@@ -76,27 +76,50 @@ scriptrunner -o, --open           Gezgin'de aç
 scriptrunner run python/hello.py a b   TUI olmadan doğrudan çalıştır (exit code döner)
 ```
 
-## Kurulum (Windows x64)
+## Kurulum ve indirme
 
-1. GitHub deposundaki **Releases** bölümünden `scriptrunner.exe` dosyasını indirin.
-2. İstediğiniz klasöre taşıyıp terminalden çalıştırın. Klasörü `PATH`'e
-   eklerseniz `scriptrunner` komutunu her dizinden kullanabilirsiniz.
+GitHub **Releases** bölümünde Windows, Linux ve macOS için hazır ikililer bulunur:
+
+- Windows x64: `scriptrunner-windows-x86_64.exe`
+- Linux x64: `scriptrunner-linux-x86_64`
+- Linux ARM64: `scriptrunner-linux-aarch64`
+- macOS Intel: `scriptrunner-macos-x86_64`
+- macOS Apple Silicon: `scriptrunner-macos-aarch64`
+
+Windows'ta `.exe` dosyasını indirip istediğiniz klasöre taşıyın. Örnek:
 
 ```powershell
-# İndirilen dosyayı örnek bir kurulum klasörüne taşıyın
 New-Item -ItemType Directory -Force "$env:LOCALAPPDATA\Programs\scriptrunner"
-Move-Item "$env:USERPROFILE\Downloads\scriptrunner.exe" `
+Move-Item "$env:USERPROFILE\Downloads\scriptrunner-windows-x86_64.exe" `
   "$env:LOCALAPPDATA\Programs\scriptrunner\scriptrunner.exe"
 & "$env:LOCALAPPDATA\Programs\scriptrunner\scriptrunner.exe" --help
 ```
 
-Uygulamanın kendisi için Rust kurmanız gerekmez. Çalıştıracağınız scriptlerin
-diline göre Python, Node.js veya Rust (`rustc`) ayrıca kurulu ve `PATH`'te
-olmalıdır. İlk çalıştırmada script ve yapılandırma klasörleri otomatik oluşturulur.
+Linux x64 örneği (ARM64 için dosya adını `scriptrunner-linux-aarch64` yapın):
+
+```sh
+curl -L https://github.com/halil07/scriptrunner/releases/latest/download/scriptrunner-linux-x86_64 -o scriptrunner
+chmod +x scriptrunner
+./scriptrunner --help
+sudo install -m 755 scriptrunner /usr/local/bin/scriptrunner
+```
+
+macOS için işlem aynıdır; işlemci mimarinize göre `scriptrunner-macos-x86_64`
+veya `scriptrunner-macos-aarch64` dosyasını indirin. Örnek (Apple Silicon):
+
+```sh
+curl -L https://github.com/halil07/scriptrunner/releases/latest/download/scriptrunner-macos-aarch64 -o scriptrunner
+chmod +x scriptrunner
+./scriptrunner --help
+```
+
+Uygulamanın kendisi için Rust kurmanız gerekmez. Script çalıştırmak için ilgili
+Python, Node.js veya Rust (`rustc`) yorumlayıcısı PATH'te olmalı ya da
+`config.toml` içinde yolu belirtilmelidir. İlk açılışta bu araçlar denetlenir.
 
 Yeni bir GitHub Release yayımlamak için `v` ile başlayan bir sürüm etiketi
-gönderin (ör. `v0.1.0`). GitHub Actions testleri çalıştırır, Windows x64
-ikilisini derler ve yalnızca `scriptrunner.exe` dosyasını Release'e ekler.
+gönderin (ör. `v0.1.0`). GitHub Actions testleri çalıştırır, Windows/Linux/macOS
+ikili dosyalarını derler ve doğrudan Release'e ekler.
 Komut ve uygulama içi kullanım yardımı için `scriptrunner --help` komutunu
 kullanın veya TUI ana ekranından **Yardım** seçeneğini açın.
 
