@@ -76,6 +76,29 @@ scriptrunner -o, --open           Gezgin'de aç
 scriptrunner run python/hello.py a b   TUI olmadan doğrudan çalıştır (exit code döner)
 ```
 
+## Kurulum (Windows x64)
+
+1. GitHub deposundaki **Releases** bölümünden en son sürümün
+   `scriptrunner-windows-x86_64.zip` dosyasını indirin.
+2. ZIP'i istediğiniz klasöre çıkarın (ör. `%LOCALAPPDATA%\Programs\scriptrunner`).
+3. `scriptrunner.exe` dosyasını bir terminalden çalıştırın. Klasörü `PATH`'e
+   eklerseniz `scriptrunner` komutunu her dizinden kullanabilirsiniz.
+
+```powershell
+# Örnek: ZIP'i indirdiğiniz klasörde açtıktan sonra
+Expand-Archive .\scriptrunner-windows-x86_64.zip `
+  -DestinationPath "$env:LOCALAPPDATA\Programs\scriptrunner" -Force
+& "$env:LOCALAPPDATA\Programs\scriptrunner\scriptrunner.exe" --help
+```
+
+Uygulamanın kendisi için Rust kurmanız gerekmez. Çalıştıracağınız scriptlerin
+diline göre Python, Node.js veya Rust (`rustc`) ayrıca kurulu ve `PATH`'te
+olmalıdır. İlk çalıştırmada script ve yapılandırma klasörleri otomatik oluşturulur.
+
+Yeni bir GitHub Release yayımlamak için `v` ile başlayan bir sürüm etiketi
+gönderin (ör. `v0.1.0`). GitHub Actions testleri çalıştırır, Windows x64
+ikilisini derler ve ZIP dosyasını Release'e ekler.
+
 ## Yorumlayıcı ayarı
 
 PATH'te değilse `config.toml`:
@@ -102,7 +125,7 @@ $env:PATH = "$mingw;$env:USERPROFILE\.cargo\bin;$env:PATH"
 ### Derleme / çalıştırma / test
 
 ```powershell
-cd C:\Users\halil\projects\code\scriptrunner
+cd scriptrunnerPath
 
 cargo build            # hızlı deneme derlemesi: target\debug\scriptrunner.exe
 cargo build --release  # dağıtım derlemesi: target\release\scriptrunner.exe

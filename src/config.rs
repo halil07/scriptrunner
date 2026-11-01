@@ -120,10 +120,11 @@ fn sample_config() -> String {
         "# scriptrunner yapılandırma dosyası\n\
          # Yorumlayıcılar varsayılan olarak PATH'te aranır.\n\
          # Bulunmazsa veya özel bir yol kullanmak isterseniz buraya tam yolu yazın.\n\n\
+         # Örnek yollardaki yer tutucuları kendi kurulumunuza göre değiştirin.\n\
          [interpreters]\n\
-         # python = \"C:\\\\Python314\\\\python.exe\"     {}\n\
+         # python = \"C:\\\\Path\\\\To\\\\python.exe\"     {}\n\
          # node   = \"C:\\\\Program Files\\\\nodejs\\\\node.exe\"  {}\n\
-         # rustc  = \"C:\\\\Users\\\\halil\\\\.cargo\\\\bin\\\\rustc.exe\" {}\n",
+         # rustc  = \"C:\\\\Users\\\\<kullanıcı_adı>\\\\.cargo\\\\bin\\\\rustc.exe\" {}\n",
         note(py), note(node), note(rust)
     )
 }
