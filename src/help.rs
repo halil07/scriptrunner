@@ -50,6 +50,8 @@ YAPILANDIRMA
   Varsayılan config: %APPDATA%\scriptrunner\config.toml
   SCRIPTRUNNER_CONFIG ortam değişkeniyle config/script kök dizini değiştirilebilir.
   -d / --dir script klasörünün yolunu gösterir; -o / --open klasörü açar.
+  İlk TUI açılışında config.toml oluşturma sorulur, yorumlayıcılar denetlenir;
+  eksik varsa devam etmeden önce onay istenir.
 
 SINIRLAR
   - Aynı anda yalnızca bir iş çalışır; ikinci işi başlatmadan önce ilkini durdurun.

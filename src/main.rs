@@ -8,7 +8,7 @@ mod runner;
 mod ui;
 mod util;
 
-use std::io::stdout;
+use std::io::{self, stdout, Write};
 use std::sync::mpsc;
 use std::time::Duration;
 
@@ -139,11 +139,15 @@ fn run_tui() -> i32 {
 }
 
 fn run_tui_inner() -> Result<()> {
+    let Some(cfg) = startup_config()? else {
+        return Ok(());
+    };
+
     enable_raw_mode()?;
     stdout().execute(EnterAlternateScreen)?;
     let _ = stdout().execute(EnableBracketedPaste);
 
-    let result = tui_loop();
+    let result = tui_loop(cfg);
 
     let _ = leave_tui();
     result
@@ -156,8 +160,74 @@ fn leave_tui() -> Result<()> {
     Ok(())
 }
 
-fn tui_loop() -> Result<()> {
-    let cfg = config::AppConfig::load()?;
+fn startup_config() -> Result<Option<config::AppConfig>> {
+    let config_path = config::AppConfig::config_file_path();
+    let config_missing = !config_path.is_file();
+    let marker_path = config_path.with_file_name(".startup-check-complete");
+    let is_first_start = !marker_path.is_file();
+    if is_first_start {
+        println!("scriptrunner ilk kurulum kontrolü\n");
+    }
+    let create_config = if config_missing {
+        println!("Yapılandırma dosyası bulunamadı:");
+        println!("  {}", config_path.display());
+        confirm("Örnek config.toml oluşturulsun mu? [E/h]: ")?
+    } else {
+        false
+    };
+
+    let cfg = config::AppConfig::load_with_config_creation(create_config)?;
+
+    if is_first_start {
+        println!("\nSistem gereksinimleri:");
+        let checks = [
+            ("Python", cfg.python.as_str()),
+            ("Node.js", cfg.node.as_str()),
+            ("Rust", cfg.rustc.as_str()),
+        ];
+        let mut missing = Vec::new();
+        for (name, executable) in checks {
+            match util::find_in_path(executable) {
+                Some(path) => println!("  ✓ {name:<8} {}", path.display()),
+                None => {
+                    println!("  ✗ {name:<8} {executable} bulunamadı");
+                    missing.push(name);
+                }
+            }
+        }
+
+        if missing.is_empty() {
+            println!("\nGerekli yorumlayıcılar bulundu.");
+        } else {
+            println!("\nEksik: {}.", missing.join(", "));
+            println!("İlgili dili kullanmak için yükleyin veya config.toml içindeki [interpreters] bölümüne yolunu yazın.");
+            println!("scriptrunner bu araçları otomatik yüklemez; diğer diller kullanılabilir.");
+            if !confirm("Eksikler olmadan ana ekrana devam edilsin mi? [E/h]: ")? {
+                println!("Başlatma iptal edildi. Eksik yorumlayıcıları kurup tekrar deneyin.");
+                return Ok(None);
+            }
+        }
+        println!("\nAna ekrana geçmek için Enter'a basın.");
+        let mut input = String::new();
+        io::stdin().read_line(&mut input)?;
+        std::fs::write(marker_path, "checked\n")?;
+    }
+
+    Ok(Some(cfg))
+}
+
+fn confirm(prompt: &str) -> Result<bool> {
+    print!("{prompt}");
+    stdout().flush()?;
+    let mut answer = String::new();
+    io::stdin().read_line(&mut answer)?;
+    Ok(matches!(
+        answer.trim().to_ascii_lowercase().as_str(),
+        "" | "e" | "evet" | "y" | "yes"
+    ))
+}
+
+fn tui_loop(cfg: config::AppConfig) -> Result<()> {
     let (tx, rx) = mpsc::channel::<AppEvent>();
     let event_tx = tx.clone();
     let mut app = App::new(cfg, tx);

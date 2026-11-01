@@ -49,6 +49,12 @@ fn default_data_dir() -> PathBuf {
         .join(APP_ID)
 }
 
+fn config_root() -> PathBuf {
+    std::env::var_os("SCRIPTRUNNER_CONFIG")
+        .map(PathBuf::from)
+        .unwrap_or_else(default_data_dir)
+}
+
 fn default_cache_dir() -> PathBuf {
     // Windows'ta %LOCALAPPDATA% ; Linux/macOS'ta ~/.cache
     dirs::cache_dir()
@@ -58,10 +64,14 @@ fn default_cache_dir() -> PathBuf {
 }
 
 impl AppConfig {
-    /// Dizinleri oluşturur, config.toml varsa okur, yoksa örnek bir dosya yazar.
+    /// Dizinleri oluşturur ve config.toml varsa okur; yoksa örnek bir dosya yazar.
     pub fn load() -> Result<AppConfig> {
-        let overridden = std::env::var_os("SCRIPTRUNNER_CONFIG").map(PathBuf::from);
-        let root = overridden.unwrap_or_else(default_data_dir);
+        Self::load_with_config_creation(true)
+    }
+
+    /// TUI ilk açılışında örnek config dosyasının oluşturulup oluşturulmayacağını seçer.
+    pub fn load_with_config_creation(create_config: bool) -> Result<AppConfig> {
+        let root = config_root();
         let scripts_dir = root.join("scripts");
         let cache_dir = default_cache_dir();
 
@@ -86,7 +96,7 @@ impl AppConfig {
                 if let Some(v) = c.interpreters.node { app.node = v; }
                 if let Some(v) = c.interpreters.rustc { app.rustc = v; }
             }
-        } else {
+        } else if create_config {
             fs::write(&cfg_path, sample_config()).ok();
         }
 
@@ -100,6 +110,10 @@ impl AppConfig {
             }
         }
         Ok(app)
+    }
+
+    pub fn config_file_path() -> PathBuf {
+        config_root().join("config.toml")
     }
 
     #[allow(dead_code)]
