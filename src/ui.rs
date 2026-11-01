@@ -54,7 +54,7 @@ fn draw_header(f: &mut Frame, app: &App, r: Rect) {
     let dir = config::shorten(&app.cfg.scripts_dir, 42);
     let line = Line::from(vec![
         Span::styled("◼ ", Style::new().fg(ACCENT).bold()),
-        Span::styled("scriptrunner", Style::new().fg(Color::White).bold()),
+        Span::styled("sr", Style::new().fg(Color::White).bold()),
         Span::styled(format!("  ·  scriptler: {}", app.scripts.len()), Style::new().fg(MUTED)),
         Span::styled("  ·  ", Style::new().fg(MUTED)),
         Span::styled(dir, Style::new().fg(MUTED)),
@@ -113,7 +113,7 @@ fn draw_welcome(f: &mut Frame, app: &App, r: Rect) {
         Line::from(Span::styled("  ↑↓ seç · Enter uygula", Style::new().fg(MUTED))),
     ];
     if app.scripts.is_empty() {
-        lines.insert(4, Line::from(Span::styled("  (henüz script yok — `scriptrunner --open` ile klasörü açıp script bırak)", Style::new().fg(Color::Yellow))));
+        lines.insert(4, Line::from(Span::styled("  (henüz script yok — `sr --open` ile klasörü açıp script bırak)", Style::new().fg(Color::Yellow))));
     }
 
     lines.push(Line::from(""));

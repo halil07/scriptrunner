@@ -1,4 +1,4 @@
-//! scriptrunner — Ctrl+P ile script seçip argüman vererek çalıştıran terminal uygulaması.
+//! sr — Ctrl+P ile script seçip argüman vererek çalıştıran terminal uygulaması.
 
 mod app;
 mod config;
@@ -105,7 +105,7 @@ fn cmd_run(args: &[String]) -> i32 {
     };
     let scripts = discovery::scan(&cfg);
     let Some(key) = args.first() else {
-        eprintln!("kullanım: scriptrunner run <key> [args...]\nanahtarları görmek için: scriptrunner --list");
+        eprintln!("kullanım: sr run <key> [args...]\nanahtarları görmek için: sr --list");
         return 2;
     };
     let Some(script) = discovery::find_key(&scripts, key) else {
@@ -166,7 +166,7 @@ fn startup_config() -> Result<Option<config::AppConfig>> {
     let marker_path = config_path.with_file_name(".startup-check-complete");
     let is_first_start = !marker_path.is_file();
     if is_first_start {
-        println!("scriptrunner ilk kurulum kontrolü\n");
+        println!("sr ilk kurulum kontrolü\n");
     }
     let create_config = if config_missing {
         println!("Yapılandırma dosyası bulunamadı:");
@@ -201,7 +201,7 @@ fn startup_config() -> Result<Option<config::AppConfig>> {
         } else {
             println!("\nEksik: {}.", missing.join(", "));
             println!("İlgili dili kullanmak için yükleyin veya config.toml içindeki [interpreters] bölümüne yolunu yazın.");
-            println!("scriptrunner bu araçları otomatik yüklemez; diğer diller kullanılabilir.");
+            println!("sr bu araçları otomatik yüklemez; diğer diller kullanılabilir.");
             if !confirm("Eksikler olmadan ana ekrana devam edilsin mi? [E/h]: ")? {
                 println!("Başlatma iptal edildi. Eksik yorumlayıcıları kurup tekrar deneyin.");
                 return Ok(None);

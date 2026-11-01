@@ -1,7 +1,21 @@
-# scriptrunner
+# scriptrunner (`sr`)
 
 OpenCode tarzı terminal UI'lı (TUI), Rust ile yazılmış bir script çalıştırıcı.
 **Ctrl+P** ile script seçersin, argüman girersin, çalışır. AI yok — statik, hızlı ve padletsiz.
+
+## Ekran görüntüleri
+
+### Ana ekran
+
+![sr ana ekranı](examples/screenshots/main.png)
+
+### Script listesi
+
+![sr script listesi](examples/screenshots/script_list.png)
+
+### Çalışan script
+
+![sr çalışan script çıktısı](examples/screenshots/run.png)
 
 ## Konumlar
 
@@ -12,7 +26,7 @@ OpenCode tarzı terminal UI'lı (TUI), Rust ile yazılmış bir script çalışt
 | macOS | `~/Library/Application Support/scriptrunner/` | `~/Library/Caches/scriptrunner/cache/` |
 
 `SCRIPTRUNNER_CONFIG` ortam değişkeniyle kök dizini değiştirebilirsin.
-Script klasörünün gerçek yolunu `scriptrunner --dir` ile görebilirsin.
+Komut satırı program adı `sr`'dir. Script klasörünün gerçek yolunu `sr --dir` ile görebilirsin.
 
 ## Script tanımlama
 
@@ -25,12 +39,12 @@ klasörlere ayırabilirsin (`scripts\python\`, `scripts\nodejs\`, `scripts\rust\
   (tek dosyada std dışı kütüphane yok; cargo projesi için manifest kullan)
 
 Alt klasörlere koyulan scriptin anahtarı klasör yolunu içerir:
-`scripts\python\hello.py` → `python/hello.py`, çalıştırma: `scriptrunner run python/hello.py`.
+`scripts\python\hello.py` → `python/hello.py`, çalıştırma: `sr run python/hello.py`.
 Script kendi klasöründe çalışır (göreli dosyalar yanındakilere gider).
 
 Hazır örnekler: `examples/` klasöründe dil başına klasörler halinde durur
 (`examples/python/hello.py`, `examples/nodejs/hello.js`, `examples/rust/hello.rs`,
-`examples/manifest/`). Bırakmak: `scriptrunner --open` → klasörü aç → kopyala.
+`examples/manifest/`). Bırakmak: `sr --open` → klasörü aç → kopyala.
 
 ### Manifest (özel komutlar)
 
@@ -69,48 +83,48 @@ default_args = "--target prod"
 ## CLI modları
 
 ```
-scriptrunner                      TUI
-scriptrunner -l, --list           script listesi
-scriptrunner -d, --dir            script klasör yolunu yaz
-scriptrunner -o, --open           Gezgin'de aç
-scriptrunner run python/hello.py a b   TUI olmadan doğrudan çalıştır (exit code döner)
+sr                           TUI
+sr -l, --list                script listesi
+sr -d, --dir                 script klasör yolunu yaz
+sr -o, --open                Gezgin'de aç
+sr run python/hello.py a b  TUI olmadan doğrudan çalıştır (exit code döner)
 ```
 
 ## Kurulum ve indirme
 
 GitHub **Releases** bölümünde Windows, Linux ve macOS için hazır ikililer bulunur:
 
-- Windows x64: `scriptrunner-windows-x86_64.exe`
-- Linux x64: `scriptrunner-linux-x86_64`
-- Linux ARM64: `scriptrunner-linux-aarch64`
-- macOS Intel: `scriptrunner-macos-x86_64`
-- macOS Apple Silicon: `scriptrunner-macos-aarch64`
+- Windows x64: `sr-windows-x86_64.exe`
+- Linux x64: `sr-linux-x86_64`
+- Linux ARM64: `sr-linux-aarch64`
+- macOS Intel: `sr-macos-x86_64`
+- macOS Apple Silicon: `sr-macos-aarch64`
 
 Windows'ta `.exe` dosyasını indirip istediğiniz klasöre taşıyın. Örnek:
 
 ```powershell
-New-Item -ItemType Directory -Force "$env:LOCALAPPDATA\Programs\scriptrunner"
-Move-Item "$env:USERPROFILE\Downloads\scriptrunner-windows-x86_64.exe" `
-  "$env:LOCALAPPDATA\Programs\scriptrunner\scriptrunner.exe"
-& "$env:LOCALAPPDATA\Programs\scriptrunner\scriptrunner.exe" --help
+New-Item -ItemType Directory -Force "$env:LOCALAPPDATA\Programs\sr"
+Move-Item "$env:USERPROFILE\Downloads\sr-windows-x86_64.exe" `
+  "$env:LOCALAPPDATA\Programs\sr\sr.exe"
+& "$env:LOCALAPPDATA\Programs\sr\sr.exe" --help
 ```
 
-Linux x64 örneği (ARM64 için dosya adını `scriptrunner-linux-aarch64` yapın):
+Linux x64 örneği (ARM64 için dosya adını `sr-linux-aarch64` yapın):
 
 ```sh
-curl -L https://github.com/halil07/scriptrunner/releases/latest/download/scriptrunner-linux-x86_64 -o scriptrunner
-chmod +x scriptrunner
-./scriptrunner --help
-sudo install -m 755 scriptrunner /usr/local/bin/scriptrunner
+curl -L https://github.com/halil07/scriptrunner/releases/latest/download/sr-linux-x86_64 -o sr
+chmod +x sr
+./sr --help
+sudo install -m 755 sr /usr/local/bin/sr
 ```
 
-macOS için işlem aynıdır; işlemci mimarinize göre `scriptrunner-macos-x86_64`
-veya `scriptrunner-macos-aarch64` dosyasını indirin. Örnek (Apple Silicon):
+macOS için işlem aynıdır; işlemci mimarinize göre `sr-macos-x86_64`
+veya `sr-macos-aarch64` dosyasını indirin. Örnek (Apple Silicon):
 
 ```sh
-curl -L https://github.com/halil07/scriptrunner/releases/latest/download/scriptrunner-macos-aarch64 -o scriptrunner
-chmod +x scriptrunner
-./scriptrunner --help
+curl -L https://github.com/halil07/scriptrunner/releases/latest/download/sr-macos-aarch64 -o sr
+chmod +x sr
+./sr --help
 ```
 
 Uygulamanın kendisi için Rust kurmanız gerekmez. Script çalıştırmak için ilgili
@@ -120,7 +134,7 @@ Python, Node.js veya Rust (`rustc`) yorumlayıcısı PATH'te olmalı ya da
 Yeni bir GitHub Release yayımlamak için `v` ile başlayan bir sürüm etiketi
 gönderin (ör. `v0.1.0`). GitHub Actions testleri çalıştırır, Windows/Linux/macOS
 ikili dosyalarını derler ve doğrudan Release'e ekler.
-Komut ve uygulama içi kullanım yardımı için `scriptrunner --help` komutunu
+Komut ve uygulama içi kullanım yardımı için `sr --help` komutunu
 kullanın veya TUI ana ekranından **Yardım** seçeneğini açın.
 
 ## Yorumlayıcı ayarı
@@ -151,8 +165,8 @@ $env:PATH = "$mingw;$env:USERPROFILE\.cargo\bin;$env:PATH"
 ```powershell
 cd scriptrunnerPath
 
-cargo build            # hızlı deneme derlemesi: target\debug\scriptrunner.exe
-cargo build --release  # dağıtım derlemesi: target\release\scriptrunner.exe
+cargo build            # hızlı deneme derlemesi: target\debug\sr.exe
+cargo build --release  # dağıtım derlemesi: target\release\sr.exe
 cargo test             # birim testler (util, discovery)
 cargo run              # TUI'ı development'tan başlatır (Ctrl+P'yi dene)
 ```
@@ -160,7 +174,7 @@ cargo run              # TUI'ı development'tan başlatır (Ctrl+P'yi dene)
 Release derlemesini terminalinden her yerden çalıştırmak için:
 
 ```powershell
-Copy-Item target\release\scriptrunner.exe "$env:LOCALAPPDATA\Microsoft\WindowsApps\" -Force
+Copy-Item target\release\sr.exe "$env:LOCALAPPDATA\Microsoft\WindowsApps\" -Force
 ```
 
 ### İzole development config'i

@@ -1,4 +1,4 @@
-// Tek dosyalik Rust scripti - scriptrunner bunu rustc ile derler ve cache'ler.
+// Tek dosyalik Rust scripti - sr bunu rustc ile derler ve cache'ler.
 use std::env;
 
 fn main() {

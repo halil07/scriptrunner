@@ -17,23 +17,23 @@ jobs:
         include:
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            asset: scriptrunner-windows-x86_64.exe
+            asset: sr-windows-x86_64.exe
             extension: .exe
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
-            asset: scriptrunner-linux-x86_64
+            asset: sr-linux-x86_64
             extension: ""
           - os: ubuntu-22.04-arm
             target: aarch64-unknown-linux-gnu
-            asset: scriptrunner-linux-aarch64
+            asset: sr-linux-aarch64
             extension: ""
           - os: macos-15-intel
             target: x86_64-apple-darwin
-            asset: scriptrunner-macos-x86_64
+            asset: sr-macos-x86_64
             extension: ""
           - os: macos-15
             target: aarch64-apple-darwin
-            asset: scriptrunner-macos-aarch64
+            asset: sr-macos-aarch64
             extension: ""
     runs-on: ${{ matrix.os }}
 
@@ -56,7 +56,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist
-          cp "target/${{ matrix.target }}/release/scriptrunner${{ matrix.extension }}" "dist/${{ matrix.asset }}"
+          cp "target/${{ matrix.target }}/release/sr${{ matrix.extension }}" "dist/${{ matrix.asset }}"
 
       - name: Upload release binary
         uses: actions/upload-artifact@v4

@@ -1,16 +1,16 @@
 pub fn text() -> String {
     format!(
-        r#"scriptrunner {version} — terminalden script bul ve çalıştır
+        r#"sr {version} — terminalden script bul ve çalıştır
 
 KULLANIM
-  scriptrunner                 Ana ekranı (TUI) açar
-  scriptrunner -t, --tui       Ana ekranı açar
-  scriptrunner -h, --help      Bu yardımı gösterir
-  scriptrunner help            Bu yardımı gösterir
-  scriptrunner -l, --list      Bulunan scriptleri ve kullanılabilirliklerini listeler
-  scriptrunner -d, --dir       Script klasörünün yolunu yazdırır
-  scriptrunner -o, --open      Script klasörünü açar (Windows); diğer sistemlerde yolu yazdırır
-  scriptrunner run <anahtar> [argümanlar...]
+  sr                 Ana ekranı (TUI) açar
+  sr -t, --tui       Ana ekranı açar
+  sr -h, --help      Bu yardımı gösterir
+  sr help            Bu yardımı gösterir
+  sr -l, --list      Bulunan scriptleri ve kullanılabilirliklerini listeler
+  sr -d, --dir       Script klasörünün yolunu yazdırır
+  sr -o, --open      Script klasörünü açar (Windows); diğer sistemlerde yolu yazdırır
+  sr run <anahtar> [argümanlar...]
                                Scripti TUI olmadan çalıştırır; scriptin çıkış kodunu döndürür
 
 TUI TUŞLARI
@@ -28,7 +28,7 @@ TUI TUŞLARI
 
 SCRIPT EKLEME
   Script klasörü: işletim sisteminin uygulama verisi dizinindeki scriptrunner/scripts
-  Tam yolu görmek için: scriptrunner --dir
+  Tam yolu görmek için: sr --dir
   Alt klasörler taranır; örneğin python\hello.py anahtarı python/hello.py olur.
   - .py / .pyw        Python ile çalışır (python[3] -u)
   - .js / .mjs / .cjs Node.js ile çalışır
