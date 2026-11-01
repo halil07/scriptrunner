@@ -127,7 +127,7 @@ fn scan_dir(dir: &Path, base: &Path, cfg: &AppConfig, depth: usize, out: &mut Ve
                     missing_reason: if has_cmd {
                         None
                     } else {
-                        Some("script.toml içinde 'command' eksik".into())
+                        Some(crate::i18n::text("script.toml içinde 'command' eksik", "'command' is missing from script.toml").into())
                     },
                 });
                 continue; // manifest klasörünün içine inilmez
@@ -150,6 +150,15 @@ fn scan_dir(dir: &Path, base: &Path, cfg: &AppConfig, depth: usize, out: &mut Ve
                     _ => &cfg.rustc,
                 };
                 let exists = crate::util::find_in_path(bin).is_some();
+                let missing_reason = if exists {
+                    None
+                } else {
+                    let template = crate::i18n::text(
+                        "'{bin}' bulunamadı - config.toml'a tam yolu yazın",
+                        "'{bin}' was not found - set its full path in config.toml",
+                    );
+                    Some(template.replace("{bin}", bin))
+                };
                 out.push(Script {
                     key: rel_key(base, &path),
                     name: path
@@ -163,7 +172,7 @@ fn scan_dir(dir: &Path, base: &Path, cfg: &AppConfig, depth: usize, out: &mut Ve
                     default_args: String::new(),
                     cwd: None,
                     available: exists,
-                    missing_reason: (!exists).then(|| format!("'{bin}' bulunamadı - config.toml'a tam yolu yazın")),
+                    missing_reason,
                 });
             }
         }

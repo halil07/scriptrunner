@@ -241,7 +241,7 @@ impl App {
             KeyCode::Char('c') if ctrl => {
                 if self.job.as_ref().is_some_and(|j| j.is_running()) {
                     self.job.as_mut().unwrap().kill();
-                    self.toast("isteğiniz süreç durduruldu");
+                    self.toast(crate::i18n::text("İşlem durduruldu", "Process stopped"));
                 } else {
                     self.quit = true;
                 }
@@ -403,11 +403,11 @@ impl App {
                             let cur = script.default_args.chars().count();
                             pal.args_mode = Some((idx, script.default_args.clone(), cur));
                         } else {
-                            let msg = script.missing_reason.clone().unwrap_or_else(|| "kullanılamaz".into());
+                            let msg = script.missing_reason.clone().unwrap_or_else(|| crate::i18n::text("kullanılamaz", "unavailable").into());
                             self.toast(msg);
                         }
                     }
-                    None => self.toast("eşleşen script yok"),
+                    None => self.toast(crate::i18n::text("Eşleşen script yok", "No matching script")),
                 }
             }
             KeyCode::Tab => {
@@ -417,7 +417,7 @@ impl App {
                         keep = false;
                     }
                 } else {
-                    self.toast("eşleşen script yok");
+                    self.toast(crate::i18n::text("Eşleşen script yok", "No matching script"));
                 }
             }
             KeyCode::Esc => keep = false,
@@ -432,15 +432,15 @@ impl App {
     /// idx'teki scripti verilen argümanla çalıştırır. true = başladı.
     fn run_index(&mut self, idx: usize, args: &str) -> bool {
         if self.job.as_ref().is_some_and(|j| j.is_running()) {
-            self.toast("bir iş hâlâ çalışıyor — Ctrl+C ile durdurabilirsin");
+            self.toast(crate::i18n::text("Bir iş hâlâ çalışıyor — Ctrl+C ile durdurabilirsin", "A job is still running — stop it with Ctrl+C"));
             return false;
         }
         let Some(s) = self.scripts.get(idx) else {
-            self.toast("script bulunamadı");
+            self.toast(crate::i18n::text("Script bulunamadı", "Script not found"));
             return false;
         };
         if !s.available {
-            self.toast(s.missing_reason.clone().unwrap_or_else(|| "kullanılamaz".into()));
+            self.toast(s.missing_reason.clone().unwrap_or_else(|| crate::i18n::text("kullanılamaz", "unavailable").into()));
             return false;
         }
         let s = s.clone();
@@ -452,7 +452,7 @@ impl App {
                 true
             }
             Err(e) => {
-                self.toast(format!("başlatılamadı: {e}"));
+                self.toast(format!("{}: {e}", crate::i18n::text("Başlatılamadı", "Failed to start")));
                 false
             }
         }
@@ -460,17 +460,17 @@ impl App {
 
     fn rerun_last(&mut self) {
         if self.job.as_ref().is_some_and(|j| j.is_running()) {
-            self.toast("çalışan iş var — önce Ctrl+C ile durdur");
+            self.toast(crate::i18n::text("Çalışan iş var — önce Ctrl+C ile durdur", "A job is running — stop it first with Ctrl+C"));
             return;
         }
         let Some(prev) = self.last.clone() else {
-            self.toast("tekrar için önce bir iş çalıştır");
+            self.toast(crate::i18n::text("Tekrar için önce bir iş çalıştır", "Run a job before trying to rerun it"));
             return;
         };
         self.refresh_scripts();
         let idx = self.scripts.iter().position(|s| s.key.eq_ignore_ascii_case(&prev.script_key));
         let Some(idx) = idx else {
-            self.toast("script artık listede değil (silinmiş olabilir)");
+            self.toast(crate::i18n::text("Script artık listede değil (silinmiş olabilir)", "Script is no longer in the list (it may have been deleted)"));
             return;
         };
         self.run_index(idx, &prev.args);

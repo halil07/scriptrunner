@@ -11,6 +11,7 @@ use ratatui::Frame;
 use crate::app::{App, HomeAction};
 use crate::config;
 use crate::discovery::Lang;
+use crate::i18n::text;
 use crate::runner::{JobState, Outcome};
 use crate::util;
 
@@ -55,7 +56,10 @@ fn draw_header(f: &mut Frame, app: &App, r: Rect) {
     let line = Line::from(vec![
         Span::styled("◼ ", Style::new().fg(ACCENT).bold()),
         Span::styled("sr", Style::new().fg(Color::White).bold()),
-        Span::styled(format!("  ·  scriptler: {}", app.scripts.len()), Style::new().fg(MUTED)),
+        Span::styled(
+            format!("  ·  {}: {}", text("scriptler", "scripts"), app.scripts.len()),
+            Style::new().fg(MUTED),
+        ),
         Span::styled("  ·  ", Style::new().fg(MUTED)),
         Span::styled(dir, Style::new().fg(MUTED)),
     ]);
@@ -83,7 +87,7 @@ fn draw_help(f: &mut Frame, app: &App, r: Rect) {
     let block = Block::default()
         .borders(Borders::ALL)
         .border_style(Style::new().fg(Color::Rgb(50, 50, 50)))
-        .title(Span::styled(" Yardım ", Style::new().fg(ACCENT).bold()))
+        .title(Span::styled(format!(" {} ", text("Yardım", "Help")), Style::new().fg(ACCENT).bold()))
         .style(Style::new().bg(Color::Black));
     let inner = block.inner(r);
     f.render_widget(block, r);
@@ -101,29 +105,35 @@ fn draw_help(f: &mut Frame, app: &App, r: Rect) {
 fn draw_welcome(f: &mut Frame, app: &App, r: Rect) {
     let mut lines = vec![
         Line::from(""),
-        Line::from(Span::styled("  Ana menüden bir işlem seç:", Style::new().fg(Color::White).bold())),
+        Line::from(Span::styled(
+            format!("  {}", text("Ana menüden bir işlem seç:", "Choose an action:")),
+            Style::new().fg(Color::White).bold(),
+        )),
         Line::from(""),
         Line::from(Span::styled(format!("  @ {:?}", app.cfg.scripts_dir), Style::new().fg(ACCENT))),
-        Line::from(Span::styled("  Scriptleri bu klasöre bırak:", Style::new().fg(MUTED))),
-        Line::from(Span::styled("  · python  : python/ornek.py", Style::new().fg(lang_color(Lang::Python)))),
-        Line::from(Span::styled("  · node    : nodejs/ornek.js", Style::new().fg(lang_color(Lang::Node)))),
-        Line::from(Span::styled("  · rust    : rust/ornek.rs  (tek dosya; rustc ile derlenir)", Style::new().fg(lang_color(Lang::Rust)))),
-        Line::from(Span::styled("  · özel    : Klasör/script.toml  (command şablonu)", Style::new().fg(lang_color(Lang::Custom)))),
+        Line::from(Span::styled(format!("  {}", text("Scriptleri bu klasöre bırak:", "Drop scripts in this folder:")), Style::new().fg(MUTED))),
+        Line::from(Span::styled("  · Python  : python/hello.py", Style::new().fg(lang_color(Lang::Python)))),
+        Line::from(Span::styled("  · Node.js : nodejs/hello.js", Style::new().fg(lang_color(Lang::Node)))),
+        Line::from(Span::styled(format!("  · Rust    : rust/hello.rs  ({})", text("tek dosya; rustc ile derlenir", "single file; compiled with rustc")), Style::new().fg(lang_color(Lang::Rust)))),
+        Line::from(Span::styled(format!("  · {} : {}/script.toml  ({})", text("özel", "Custom"), text("Klasör", "Folder"), text("komut şablonu", "command template")), Style::new().fg(lang_color(Lang::Custom)))),
         Line::from(""),
-        Line::from(Span::styled("  ↑↓ seç · Enter uygula", Style::new().fg(MUTED))),
+        Line::from(Span::styled(text("  ↑↓ seç · Enter uygula", "  ↑↓ select · Enter confirm"), Style::new().fg(MUTED))),
     ];
     if app.scripts.is_empty() {
-        lines.insert(4, Line::from(Span::styled("  (henüz script yok — `sr --open` ile klasörü açıp script bırak)", Style::new().fg(Color::Yellow))));
+        lines.insert(4, Line::from(Span::styled(
+            text("  (henüz script yok — `sr --open` ile klasörü açıp script bırak)", "  (no scripts yet — open the folder with `sr --open` and add some)"),
+            Style::new().fg(Color::Yellow),
+        )));
     }
 
     lines.push(Line::from(""));
     for (index, action) in app.home_actions().iter().enumerate() {
         let selected = index == app.home_selected;
         let (label, shortcut) = match action {
-            HomeAction::OpenList => ("Listeyi aç", "Enter / Ctrl+P"),
-            HomeAction::Rerun => ("Son işi tekrar çalıştır", "Enter / Ctrl+R"),
-            HomeAction::Help => ("Yardım", "Enter"),
-            HomeAction::Quit => ("Çıkış", "Enter / q / Ctrl+C"),
+            HomeAction::OpenList => (text("Listeyi aç", "Open script list"), "Enter / Ctrl+P"),
+            HomeAction::Rerun => (text("Son işi tekrar çalıştır", "Rerun last job"), "Enter / Ctrl+R"),
+            HomeAction::Help => (text("Yardım", "Help"), "Enter"),
+            HomeAction::Quit => (text("Çıkış", "Quit"), "Enter / q / Ctrl+C"),
         };
         let marker_style = if selected { Style::new().fg(ACCENT).bold() } else { Style::new().fg(MUTED) };
         let label_style = if selected {
@@ -210,11 +220,11 @@ fn draw_status(f: &mut Frame, app: &App, r: Rect) {
     };
 
     let hint = if app.help_open {
-        " Esc/Backspace geri · ↑↓/PgUp/PgDn kaydır  "
+        text(" Esc/Backspace geri · ↑↓/PgUp/PgDn kaydır  ", " Esc/Backspace back · ↑↓/PgUp/PgDn scroll  ")
     } else if app.job.as_ref().is_some_and(|job| !job.is_running()) {
-        " Backspace ana ekran · PgUp/PgDn kaydır  "
+        text(" Backspace ana ekran · PgUp/PgDn kaydır  ", " Backspace home · PgUp/PgDn scroll  ")
     } else {
-        " Ctrl+P scriptler · Ctrl+R tekrar · Ctrl+C durdur/çık · PgUp/PgDn kaydır  "
+        text(" Ctrl+P scriptler · Ctrl+R tekrar · Ctrl+C durdur/çık · PgUp/PgDn kaydır  ", " Ctrl+P scripts · Ctrl+R rerun · Ctrl+C stop/quit · PgUp/PgDn scroll  ")
     };
     let right = Span::styled(hint, Style::new().fg(MUTED));
 
@@ -255,14 +265,14 @@ fn status_left(app: &App) -> Vec<Span<'static>> {
         let mut left = vec![
             Span::styled(format!(" {icon} "), Style::new().fg(color).bold()),
             Span::styled(s.title.clone(), Style::new().fg(Color::White)),
-            Span::styled(" tamamlandı", Style::new().fg(MUTED)),
+            Span::styled(format!(" {}", text("tamamlandı", "completed")), Style::new().fg(MUTED)),
         ];
         if let Some(d) = s.duration {
             left.push(Span::styled(format!(" · {}", util::fmt_duration(d)), Style::new().fg(MUTED)));
         }
         return left;
     }
-    Span::styled(" hazır", Style::new().fg(MUTED)).into_span_list()
+    Span::styled(format!(" {}", text("hazır", "ready")), Style::new().fg(MUTED)).into_span_list()
 }
 
 // ---------------------------------------------------------------- palette
@@ -292,7 +302,7 @@ fn draw_palette(f: &mut Frame, app: &App, bounds: Rect) {
     let block = Block::default()
         .borders(Borders::ALL)
         .border_style(Style::new().fg(Color::Rgb(50, 50, 50)))
-        .title(Span::styled(" scripts ", Style::new().fg(ACCENT).bold()))
+        .title(Span::styled(format!(" {} ", text("scriptler", "scripts")), Style::new().fg(ACCENT).bold()))
         .style(Style::new().bg(Color::Black));
     let inner = block.inner(r);
     f.render_widget(Clear, r);
@@ -307,7 +317,7 @@ fn draw_palette(f: &mut Frame, app: &App, bounds: Rect) {
 
     // filtre satırı
     draw_input_line(f, "> ", &pal.query, pal.cursor, cols[0]);
-    let count = Span::styled(format!(" {} eşleşme ", pal.items.len()), Style::new().fg(MUTED));
+    let count = Span::styled(format!(" {} {} ", pal.items.len(), text("eşleşme", "matches")), Style::new().fg(MUTED));
     let cx = cols[0].x + cols[0].width.saturating_sub(count.content.chars().count() as u16);
     f.render_widget(Paragraph::new(Line::from(count)), Rect { x: cx, y: cols[0].y, width: cols[0].width.saturating_sub(pal.query.chars().count() as u16 + 4), height: 1 });
 
@@ -328,7 +338,7 @@ fn draw_palette(f: &mut Frame, app: &App, bounds: Rect) {
     }
     if items.is_empty() {
         items.push(ListItem::new(Line::from(Span::styled(
-            "  Eşleşen script yok",
+            text("  Eşleşen script yok", "  No matching scripts"),
             Style::new().fg(MUTED),
         ))));
     }
@@ -341,7 +351,7 @@ fn draw_palette(f: &mut Frame, app: &App, bounds: Rect) {
     f.render_stateful_widget(list, cols[1], &mut state);
 
     // hint
-    let hint = Span::styled(" ↑↓ seç · Enter: argüman ver · Tab: hemen çalıştır · Esc kapat", Style::new().fg(MUTED));
+    let hint = Span::styled(text(" ↑↓ seç · Enter: argüman ver · Tab: hemen çalıştır · Esc kapat", " ↑↓ select · Enter: edit args · Tab: run now · Esc close"), Style::new().fg(MUTED));
     f.render_widget(Paragraph::new(Line::from(hint)), cols[2]);
 }
 
@@ -367,7 +377,7 @@ fn make_section_item(lang: Lang) -> ListItem<'static> {
         Lang::Python => "Python",
         Lang::Node => "Node.js",
         Lang::Rust => "Rust",
-        Lang::Custom => "Özel komutlar",
+        Lang::Custom => text("Özel komutlar", "Custom commands"),
     };
     ListItem::new(Line::from(Span::styled(
         format!(" ── {title} ──"),
@@ -418,7 +428,7 @@ fn draw_args_modal(f: &mut Frame, script: &crate::discovery::Script, args: &str,
         .borders(Borders::ALL)
         .border_style(Style::new().fg(Color::Rgb(50, 50, 50)))
         .title(Span::styled(
-            format!(" args → {} [{}] ", script.name, script.lang.label()),
+            format!(" {} → {} [{}] ", text("argümanlar", "args"), script.name, script.lang.label()),
             Style::new().fg(ACCENT).bold(),
         ))
         .style(Style::new().bg(Color::Black));
@@ -443,13 +453,13 @@ fn draw_args_modal(f: &mut Frame, script: &crate::discovery::Script, args: &str,
         Paragraph::new(Line::from(Span::styled(desc, Style::new().fg(MUTED)))),
         cols[0],
     );
-    draw_input_line(f, "args › ", args, cursor, cols[1]);
+    draw_input_line(f, text("argümanlar › ", "args › "), args, cursor, cols[1]);
     f.render_widget(
         Paragraph::new(Line::from(Span::styled(
             if script.default_args.is_empty() {
-                " Enter çalıştır · Esc geri".to_string()
+                text(" Enter çalıştır · Esc geri", " Enter run · Esc back").to_string()
             } else {
-                format!(" varsayılan: \"{}\" · Enter çalıştır · Esc geri", script.default_args)
+                format!(" {}: \"{}\" · {}", text("varsayılan", "default"), script.default_args, text("Enter çalıştır · Esc geri", "Enter run · Esc back"))
             },
             Style::new().fg(MUTED),
         ))),

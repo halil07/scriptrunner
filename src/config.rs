@@ -136,7 +136,13 @@ fn sample_config() -> String {
     let py = crate::util::find_in_path(python).is_some();
     let node = crate::util::find_in_path("node").is_some();
     let rust = crate::util::find_in_path("rustc").is_some();
-    let note = |ok: bool| if ok { "(PATH'te bulundu)" } else { "(PATH'te bulunamadı - tam yol verin)" };
+    let note = |ok: bool| {
+        if ok {
+            crate::i18n::text("(PATH'te bulundu)", "(found on PATH)")
+        } else {
+            crate::i18n::text("(PATH'te bulunamadı - tam yol verin)", "(not on PATH - set the full path)")
+        }
+    };
     let (python_path, node_path, rustc_path) = if cfg!(windows) {
         (
             r"C:\\Path\\To\\python.exe",
@@ -148,14 +154,27 @@ fn sample_config() -> String {
     };
 
     format!(
-        "# scriptrunner yapılandırma dosyası\n\
-         # Yorumlayıcılar varsayılan olarak PATH'te aranır.\n\
-         # Bulunmazsa veya özel bir yol kullanmak isterseniz buraya tam yolu yazın.\n\n\
-         # Örnek yollardaki yer tutucuları kendi kurulumunuza göre değiştirin.\n\
+        "# {}\n\
+         # {}\n\
+         # {}\n\n\
+         # {}\n\
          [interpreters]\n\
          # python = \"{}\"     {}\n\
          # node   = \"{}\"  {}\n\
          # rustc  = \"{}\" {}\n",
+        crate::i18n::text("# sr yapılandırma dosyası", "# sr configuration file"),
+        crate::i18n::text(
+            "Yorumlayıcılar varsayılan olarak PATH'te aranır.",
+            "Interpreters are searched on PATH by default."
+        ),
+        crate::i18n::text(
+            "Bulunmazsa veya özel bir yol kullanmak isterseniz buraya tam yolu yazın.",
+            "If one is missing or you want a custom path, set its full path here."
+        ),
+        crate::i18n::text(
+            "Örnek yollardaki yer tutucuları kendi kurulumunuza göre değiştirin.",
+            "Replace example paths with locations from your installation."
+        ),
         python_path,
         note(py),
         node_path,

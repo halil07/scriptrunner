@@ -46,9 +46,9 @@ impl Outcome {
     }
     pub fn text(self) -> String {
         match self {
-            Outcome::Ok => "tamam".into(),
-            Outcome::Killed => "durduruldu".into(),
-            Outcome::Failed(c) => format!("hata (exit {c})"),
+            Outcome::Ok => crate::i18n::text("tamam", "completed").into(),
+            Outcome::Killed => crate::i18n::text("durduruldu", "stopped").into(),
+            Outcome::Failed(c) => format!("{} (exit {c})", crate::i18n::text("hata", "error")),
         }
     }
 }
@@ -185,7 +185,7 @@ pub fn build_stages(script: &Script, cfg: &AppConfig, args_line: &str) -> Result
                     "-o".into(),
                     exe_out.to_string_lossy().into_owned(),
                 ],
-                label: "rustc derleniyor".into(),
+                label: crate::i18n::text("rustc derleniyor", "compiling with rustc").into(),
             };
             // Windows'ta WDAC, imzasız süreç zincirinin yazdığı exe'yi
             // engelleyebiliyor; derlemeyi cmd üzerinden sarmak güven yolunu açıyor.
@@ -199,11 +199,11 @@ pub fn build_stages(script: &Script, cfg: &AppConfig, args_line: &str) -> Result
         }
         Lang::Custom => {
             let Some(tpl) = &script.command else {
-                bail!("script.toml içinde 'command' yok");
+                bail!("{}", crate::i18n::text("script.toml içinde 'command' yok", "'command' is missing from script.toml"));
             };
-            let words = util::split_command(tpl).ok_or_else(|| anyhow!("komut ayrıştırılamadı: {tpl}"))?;
+            let words = util::split_command(tpl).ok_or_else(|| anyhow!("{}: {tpl}", crate::i18n::text("komut ayrıştırılamadı", "could not parse command")))?;
             if words.is_empty() {
-                bail!("script.toml 'command' boş");
+                bail!("{}", crate::i18n::text("script.toml 'command' boş", "'command' in script.toml is empty"));
             }
             let mut argv: Vec<String> = Vec::new();
             let mut has_args_token = false;
@@ -302,7 +302,12 @@ pub fn spawn_next_stage(job: &mut JobState, tx: &Sender<AppEvent>) -> Result<()>
                 job.child = Some(child);
             }
             Err(e) => {
-                let msg = format!("⛔ başlatılamadı: '{}' — {e}\n  ipucu: config.toml [interpreters] bölümüne tam yol yazabilirsiniz", stage.exe);
+                let msg = format!(
+                    "⛔ {}: '{}' — {e}\n  {}",
+                    crate::i18n::text("başlatılamadı", "failed to start"),
+                    stage.exe,
+                    crate::i18n::text("ipucu: config.toml [interpreters] bölümüne tam yol yazabilirsiniz", "hint: set the full path in config.toml under [interpreters]")
+                );
                 push_line(job, 1, &msg);
                 job.outcome = Some(Outcome::Failed(-2));
                 job.ended = Some(Instant::now());
@@ -380,7 +385,8 @@ pub fn push_line(job: &mut JobState, stream: u8, text: &str) {
     // Çok uzun tek satırı kırp
     let mut owned = text.to_string();
     if owned.chars().count() > MAX_INNER_LINE {
-        owned = owned.chars().take(MAX_INNER_LINE).collect::<String>() + " …(kırpıldı)";
+        owned = owned.chars().take(MAX_INNER_LINE).collect::<String>()
+            + crate::i18n::text(" …(kırpıldı)", " ...(truncated)");
     }
     job.lines.push((stream, owned));
 }
@@ -452,7 +458,7 @@ pub fn run_headless(script: &Script, cfg: &AppConfig, args_line: &str) -> Result
             .stderr(Stdio::piped())
             .stdin(Stdio::null())
             .spawn()
-            .map_err(|e| anyhow!("başlatılamadı: '{}' — {e}", stage.exe))?;
+            .map_err(|e| anyhow!("{}: '{}' — {e}", crate::i18n::text("başlatılamadı", "failed to start"), stage.exe))?;
         let out = child.stdout.take().unwrap();
         let err = child.stderr.take().unwrap();
         let pipes: Vec<Box<dyn std::io::Read + Send>> = vec![Box::new(out), Box::new(err)];
